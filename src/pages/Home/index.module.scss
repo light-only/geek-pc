@@ -1,0 +1,22 @@
+//
+//.aa{
+//    color: red;
+//    background: pink;
+//}
+//.bb{
+//    color: black;
+//    background: blue;
+//}
+//
+///*如果不想要更改类名就可以使用 :global的方式来包裹类名，这样css modules就不会改变类名，同时在前面加上样式aa，aa会改变，
+//    这样只有aa下面的iconFont不会改变，其他的都会改变。
+//*/
+//.aa :global(iconFont){
+//    color: red;
+//}
+.home {
+
+    :global {
+
+    }
+}
