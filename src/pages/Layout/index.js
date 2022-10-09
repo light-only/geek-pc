@@ -1,77 +1,98 @@
 import style from './index.module.scss'
-import {Component} from "react";
+import React, {Component} from "react";
 import { LaptopOutlined, NotificationOutlined, UserOutlined ,LogoutOutlined} from '@ant-design/icons';
-import { Breadcrumb, Layout, Menu } from 'antd';
-import React from 'react';
+import { Layout, Menu,Popconfirm} from 'antd';
+import {Switch,Route,withRouter} from "react-router-dom";
+import Home from "../Home";
+import ArticleList from "../ArticleList";
+import ArticlePublish from "../ArticlePublish";
+import {removeToken} from "../../utils/storage";
+import {getUserProfile} from "../../api/user";
+
 const { Header, Content, Sider } = Layout;
 
+ class LayoutComponent extends Component{
+     state = {
+         //存储用户信息
+         profile:{}
+     }
+     componentDidMount() {
+         getUserProfile().then(res=>{
+             this.setState({profile:res.data})
+         })
+     }
 
-export default  class LayoutComponent extends Component{
-    render(){
-        const items2 = [UserOutlined, LaptopOutlined, NotificationOutlined].map((icon, index) => {
-            const key = String(index + 1);
-            return {
-                key: `sub${key}`,
-                icon: React.createElement(icon),
-                label: `subnav ${key}`,
-                // children: new Array(4).fill(null).map((_, j) => {
-                //     const subKey = index * 4 + j + 1;
-                //     return {
-                //         key: subKey,
-                //         label: `option${subKey}`,
-                //     };
-                // }),
-            };
-        });
+     render(){
+
+
+        //菜单数据
+        const menuList = [
+            {
+                key:'/home',
+                icon:<UserOutlined/>,
+                label:'数据概览'
+            },
+            {
+                key:'/home/articleList',
+                icon:<LaptopOutlined/>,
+                label:'文章列表'
+            },
+            {
+                key:'/home/publish',
+                icon:<NotificationOutlined/>,
+                label:'发布文章'
+            }
+        ]
+        //退出登录
+        const confirm = ()=>{
+            //确认退出->移除token->跳转到登录页
+            removeToken();
+            this.props.history.push('/login');
+        }
+        //点击菜单，跳转对应的页面
+        const onClick = (menuItem)=>{
+            this.props.history.push(menuItem.key);
+        }
         return (
             <div className={style.layout}>
                 <Layout>
                     <Header className="header">
                         <div className="logo" />
                         <div className='profile'>
-                            <span>用户名</span>
+                            <span>{this.state.profile.name}</span>
                             <span>
-                                <LogoutOutlined />
-                                退出
+                                <Popconfirm placement="bottom" title='是否确认退出登录吗？' onConfirm={confirm} okText="确定" cancelText="取消">
+                                     <LogoutOutlined />退出
+                                </Popconfirm>
+
                             </span>
                         </div>
                     </Header>
                     <Layout>
                         <Sider width={200} className="site-layout-background">
                             <Menu
+                                defaultSelectedKeys={[this.props.location.pathname]}
                                 mode="inline"
-                                defaultSelectedKeys={['1']}
-                                defaultOpenKeys={['sub1']}
                                 style={{
                                     height: '100%',
                                     borderRight: 0,
                                 }}
-                                items={items2}
+                                theme='dark'
+                                onClick={onClick}
+                                items={menuList}
                             />
                         </Sider>
                         <Layout
                             style={{
-                                padding: '0 24px 24px',
+                                padding: '24px',
                             }}
                         >
-                            <Breadcrumb
-                                style={{
-                                    margin: '16px 0',
-                                }}
-                            >
-                                <Breadcrumb.Item>Home</Breadcrumb.Item>
-                                <Breadcrumb.Item>List</Breadcrumb.Item>
-                                <Breadcrumb.Item>App</Breadcrumb.Item>
-                            </Breadcrumb>
-                            <Content
-                                className="site-layout-background"
-                                style={{
-                                    padding: 24,
-                                    margin: 0,
-                                    minHeight: 280,
-                                }}
-                            >
-                                Content
+                            <Content className="site-layout-background">
+                                   <Switch>
+                                       <Route exact path='/home' component={ Home }></Route>
+                                       <Route path='/home/articleList' component={ ArticleList }></Route>
+                                       <Route path='/home/publish' component={ ArticlePublish }></Route>
+                                   </Switch>
                             </Content>
                         </Layout>
                     </Layout>
@@ -80,3 +101,4 @@ export default  class LayoutComponent extends Component{
         )
     }
 }
+export default withRouter(LayoutComponent)

@@ -18,3 +18,14 @@ export const login = (mobile,code)=>{
     })
 }
 
+/**
+ * 获取用户信息接口
+ * @returns {*}
+ */
+export const getUserProfile = ()=>{
+    return server({
+        method:'get',
+        url:'/user/profile'
+    })
+}
+
