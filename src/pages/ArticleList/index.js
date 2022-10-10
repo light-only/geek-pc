@@ -37,70 +37,74 @@ class ArticleList extends Component{
             this.setState({articles:res.data})
         })
     }
+    //处理页面跳转的逻辑
+    onChange = (page,pageSize)=>{
+        console.log(page,pageSize,'----')
+    }
+    onFinish = (values)=>{
+        console.log(values,'values+++');
+    }
+    columns = [
+        {
+            title: '封面',
+            dataIndex: 'cover',
+            render(data){
+                if(data.type === 1){
+                    return <img src={defaultImg} style={{width:200,height:120}}></img>
+                }else{
+                    return <img src={data.images[0]} style={{width:200,height:120}}></img>
+                }
+            }
+        },
+        {
+            title: '标题',
+            dataIndex: 'title',
+        },
+        {
+            title: '状态',
+            dataIndex: 'status',
+            render(status) {
+                const obj = ArticleStatus.find(item=>item.id === status);
+                return <Tag color={obj.color}>{obj.name}</Tag>
+            }
+        },
+        {
+            title: '发布时间',
+            dataIndex: 'pubdate'
+        },
+        {
+            title: '阅读数',
+            dataIndex: 'read_count'
+        },
+        {
+            title: '评论数',
+            dataIndex: 'comment_count'
+        },
+        {
+            title: '点赞数',
+            dataIndex: 'like_count'
+        },
+        {
+            title: '操作',
+            render(){
+                return (
+                    <div style={{width:80}}>
+                        <Space>
+                            <Button type='primary' shape='circle' icon={<EditOutlined/>}></Button>
+                            <Button type='primary' danger shape='circle' icon={<DeleteOutlined/>}></Button>
+                        </Space>
+                    </div>
+                )
+            }
+        }
+    ];
 
     render(){
 
-        const { total_count ,results } = this.state.articles;
+        const { total_count ,results,per_page } = this.state.articles;
 
-        // this.componentDidMount()
-        const handleFinish = (values)=>{
-            console.log(values,'values+++');
-        }
 
-        const columns = [
-            {
-                title: '封面',
-                dataIndex: 'cover',
-                render(data){
-                    if(data.type === 1){
-                        return <img src={defaultImg} style={{width:200,height:120}}></img>
-                    }else{
-                        return <img src={data.images[0]} style={{width:200,height:120}}></img>
-                    }
-                }
-            },
-            {
-                title: '标题',
-                dataIndex: 'title',
-            },
-            {
-                title: '状态',
-                dataIndex: 'status',
-                render(status) {
-                    const obj = ArticleStatus.find(item=>item.id === status);
-                    return <Tag color={obj.color}>{obj.name}</Tag>
-                }
-            },
-            {
-                title: '发布时间',
-                dataIndex: 'pubdate'
-            },
-            {
-                title: '阅读数',
-                dataIndex: 'read_count'
-            },
-            {
-                title: '评论数',
-                dataIndex: 'comment_count'
-            },
-            {
-                title: '点赞数',
-                dataIndex: 'like_count'
-            },
-            {
-                title: '操作',
-                render(){
-                    return (
-                        <div style={{width:80}}>
-                            <Space>
-                                <Button type='primary' shape='circle' icon={<EditOutlined/>}></Button>
-                                <Button type='primary' danger shape='circle' icon={<DeleteOutlined/>}></Button>
-                            </Space>
-                        </div>
-                    )
-                }
-            }
-        ];
+
         return (
             <div className={style.articleList}>
                 <Card title={
@@ -112,7 +116,7 @@ class ArticleList extends Component{
                     <Form
                         layout="horizontal"
                         initialValues={{status:-1}}
-                        onFinish={handleFinish}
+                        onFinish={this.onFinish}
                         size='small'
                     >
                         <Form.Item label="状态" name='status'>
@@ -142,7 +146,17 @@ class ArticleList extends Component{
                     </Form>
                 </Card>
                 <Card title={`根据筛选条件共查询到 ${total_count} 条结果：`}>
-                    <Table dataSource={ results } columns={columns} rowKey='id'/>;
+                    <Table
+                        dataSource={ results }
+                        columns={this.columns}
+                        rowKey='id'
+                        pagination={{
+                            position:['bottomCenter'],
+                            total:total_count,
+                            pageSize:per_page,
+                            onChange:this.onChange
+                        }}
+                    />;
                 </Card>
             </div>
         )
