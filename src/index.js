@@ -1,5 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { ConfigProvider } from 'antd';
+
+//导入中文包
+import 'moment/locale/zh-cn';
+import locale from 'antd/es/locale/zh_CN';
 
 //先引入antd组件样式
 import 'antd/dist/antd.css';
@@ -10,6 +15,9 @@ import App from './App';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-    <App />
+    <ConfigProvider locale={locale}>
+        <App />
+    </ConfigProvider>
+
 );
 
