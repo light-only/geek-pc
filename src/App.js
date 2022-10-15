@@ -1,27 +1,26 @@
-import {BrowserRouter, Route, Switch} from 'react-router-dom'
-import Login from './pages/Login'
+import {Route, Switch, Router, Redirect} from 'react-router-dom'
 import LayoutComponent from "./pages/Layout";
-import AuthRoute from "./components/common/AuthRoute";
+import Login from './pages/Login'
+import {Component} from "react";
+import AuthRouter from "components/common/AuthRouter";
+import history from "utils/history";
 
-function App() {
-  return (
-          <div className="App">
-              {/*<Link to='/login'>登录</Link>*/}
-              {/*<Link to='/home'>首页</Link>*/}
-              <BrowserRouter>
-                  <Switch>
-                      <Route path='/login' component={Login}></Route>
-                      {/*<Route path="/login" render={(props)=>{*/}
-                      {/*    //相比较上面的方式，这种可以添加逻辑判断，是否携带token*/}
-                      {/*    return <Login {...props} />*/}
-                      {/*}} />*/}
-                      <AuthRoute path='/home' component={LayoutComponent}></AuthRoute>
-                  </Switch>
-              </BrowserRouter>
+class App extends Component {
+  render(){
+      return (
+          //history这个东西要和Router搭配使用，并且传入history，但是不能加上withRouter
+          <Router history={history}>
+            <div className="App">
 
-          </div>
-
-  );
+                    <Switch>
+                        <Redirect exact from='/' to='/home'></Redirect>
+                        <Route path='/login' component={ Login }></Route>
+                        <AuthRouter path='/home' component={ LayoutComponent }></AuthRouter>
+                    </Switch>
+            </div>
+          </Router>
+      )
+  }
 }
 
 export default App;

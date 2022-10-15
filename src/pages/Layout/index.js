@@ -1,90 +1,99 @@
 import style from './index.module.scss'
-import React,{Component} from "react";
-import { LogoutOutlined,HomeOutlined,EditOutlined,DiffOutlined} from '@ant-design/icons';
-import {Layout, Menu, message, Popconfirm} from 'antd';
+import React, {Component} from "react";
+import { LaptopOutlined, NotificationOutlined, UserOutlined ,LogoutOutlined} from '@ant-design/icons';
+import { Layout, Menu,Popconfirm} from 'antd';
 import {Switch,Route,withRouter} from "react-router-dom";
-import Home from 'pages/Home'
-import ArticleList from "pages/ArticleList";
-import ArticlePublish from "pages/ArticlePublish";
+import Home from "../Home";
+import ArticleList from "../ArticleList";
+import ArticlePublish from "../ArticlePublish";
+import {removeToken} from "../../utils/storage";
+import {getUserProfile} from "../../api/user";
 
-import {removeToken} from "utils/storage";
 const { Header, Content, Sider } = Layout;
 
+ class LayoutComponent extends Component{
+     state = {
+         //存储用户信息
+         profile:{}
+     }
+     componentDidMount() {
+         getUserProfile().then(res=>{
+             this.setState({profile:res.data})
+         })
+     }
 
-class LayoutComponent extends Component{
-    render(){
+     render(){
 
-        const handleConfirm = ()=>{
-            //退出登录确定按钮
-            //移除token
+
+        //菜单数据
+        const menuList = [
+            {
+                key:'/home',
+                icon:<UserOutlined/>,
+                label:'数据概览'
+            },
+            {
+                key:'/home/articleList',
+                icon:<LaptopOutlined/>,
+                label:'文章列表'
+            },
+            {
+                key:'/home/publish',
+                icon:<NotificationOutlined/>,
+                label:'发布文章'
+            }
+        ]
+        //退出登录
+        const confirm = ()=>{
+            //确认退出->移除token->跳转到登录页
             removeToken();
-            //跳转登录到login页面
             this.props.history.push('/login');
-            //退出成功提示
-            message.success('退出成功');
         }
-
+        //点击菜单，跳转对应的页面
+        const onClick = (menuItem)=>{
+            this.props.history.push(menuItem.key);
+        }
         return (
             <div className={style.layout}>
                 <Layout>
                     <Header className="header">
                         <div className="logo" />
                         <div className='profile'>
-                            <span>用户名</span>
+                            <span>{this.state.profile.name}</span>
                             <span>
-                                 <Popconfirm placement="topLeft" title='你确定要退出本系统吗?'  okText="确定" cancelText="取消" onConfirm={handleConfirm}>
+                                <Popconfirm placement="bottom" title='是否确认退出登录吗？' onConfirm={confirm} okText="确定" cancelText="取消">
                                      <LogoutOutlined />退出
-                                 </Popconfirm>
+                                </Popconfirm>
+
                             </span>
                         </div>
                     </Header>
                     <Layout>
                         <Sider width={200} className="site-layout-background">
                             <Menu
-                                theme="dark"
+                                defaultSelectedKeys={[this.props.location.pathname]}
                                 mode="inline"
-                                defaultSelectedKeys={['1']}
                                 style={{
                                     height: '100%',
                                     borderRight: 0,
                                 }}
-                                items={[
-                                    {
-                                        key: '1',
-                                        icon: <HomeOutlined />,
-                                        label: `数据概览`,
-                                        onClick: () => { this.props.history.push('/home'); }
-                                    },
-                                    {
-                                        key: '2',
-                                        icon: <DiffOutlined />,
-                                        label: '内容管理',
-                                        onClick: () => { this.props.history.push('/home/article') }
-                                    },
-                                    {
-                                        key: '3',
-                                        icon: <EditOutlined />,
-                                        label: '发布文章',
-                                        // to: '/publish',
-                                        onClick: () => { this.props.history.push('/home/publish') }
-                                    },
-                                ]}
-                            >
-
-                            </Menu>
+                                theme='dark'
+                                onClick={onClick}
+                                items={menuList}
+                            />
                         </Sider>
                         <Layout
                             style={{
                                 padding: '24px',
+                                overflow:"auto"
                             }}
                         >
                             <Content className="site-layout-background">
-                               <Switch>
-                                   {/*这个地方要注意的是，下面的两个地址都不能加上home前缀，因为前面已经加上了*/}
-                                   <Route exact path='/home' component={ Home }></Route>
-                                   <Route path='/home/article' component={ ArticlePublish }></Route>
-                                   <Route path='/home/publish' component={ ArticleList }></Route>
-                               </Switch>
+                                   <Switch>
+                                       <Route exact path='/home' component={ Home }></Route>
+                                       <Route path='/home/articleList' component={ ArticleList }></Route>
+                                       <Route path='/home/publish' component={ ArticlePublish }></Route>
+                                   </Switch>
                             </Content>
                         </Layout>
                     </Layout>
@@ -93,5 +102,4 @@ class LayoutComponent extends Component{
         )
     }
 }
-
 export default withRouter(LayoutComponent)

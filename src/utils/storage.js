@@ -1,29 +1,36 @@
 
 
-
-//设置token变量
- const TOKEN_KEY = 'token-geek-pc-longzihu';
+const TOKEN_kEY = 'geek-pc-token-free';
 
 /**
- *  用来存储token
+ * 存储token
  * @param token
  */
-export const setToken = (token)=>localStorage.setItem(TOKEN_KEY,token);
+function setToken (token){
+    localStorage.setItem(TOKEN_kEY,token);
+}
 
 /**
- *  用来获取token
+ * 获取token
  * @returns {string}
  */
-export const getToken = ()=> localStorage.getItem(TOKEN_KEY);
-
+function getToken(){
+   return localStorage.getItem(TOKEN_kEY);
+}
 
 /**
- * 用来删除token
+ * 删除token
  */
-export const removeToken = ()=>localStorage.removeItem(TOKEN_KEY);
+function removeToken(){
+    localStorage.removeItem(TOKEN_kEY);
+}
 
 /**
- * 判断是否存在token
+ * 判断是否有token
  * @returns {boolean}
  */
-export const hasToken =()=> !!getToken();
+function hasToken(){
+    return !!getToken()
+}
+
+export {setToken,getToken,removeToken,hasToken}
