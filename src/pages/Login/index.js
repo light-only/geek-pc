@@ -3,7 +3,9 @@ import {Card,Form,Input,Checkbox,Button,message,Space} from 'antd'
 import './index.scss'
 import logo from 'assets/images/logo.png'
 import {login} from 'api/user'
-import {withRouter} from 'components/common/withRouter'
+// import {withRouter} from 'components/common/withRouter'
+import {setToken} from "utils/storage";
+import {withRouter} from "react-router-dom";
 
 class Index extends Component{
     state = {
@@ -11,14 +13,15 @@ class Index extends Component{
         loading:false
     }
     render(){
+        console.log(this.props,'+++++')
         const onFinish=({mobile,code})=>{
             this.setState({loading:true})
                //调用登录接口
                login(mobile, code).then(res => {
                    //登录成功，保存token
-                   localStorage.setItem('token', res.data.token);
+                   setToken(res.data.token);
                    //跳转到登录页
-                   this.props.navigate('/home');
+                   this.props.history.push('/home');
                    message.success('登录成功')
                }).catch(error=>{
                    //通过.then的方式不能直接在用try catch去捕获错误，可以通过promise自带的catch去捕获。
