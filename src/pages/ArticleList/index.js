@@ -1,55 +1,101 @@
 import style from './index.module.scss'
 import {Component} from "react";
 import {Link} from "react-router-dom";
-import { PlusOutlined ,EditOutlined ,DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined ,EditOutlined ,DeleteOutlined ,ExclamationCircleOutlined } from '@ant-design/icons';
 import defaultImg from 'assets/images/error.png'
 import {
     Card,
     Breadcrumb,
     Form,
     Radio,
-    Input,
-    Select,
     DatePicker,
     Button,
     Table,
-    Tag, Space
+    Tag,
+    Space,
+    Modal,
+    message
 } from 'antd'
 import {ArticleStatus} from "api/constants";
-import {getChannels} from "api/channel";
-import {getArticleList} from "api/articleList";
+import {delArticle, getArticleList} from "api/articleList";
+import Channel from "components/common/Channel";
+const { confirm } = Modal;
 const { RangePicker } = DatePicker;
-const { TextArea } = Input;
 
 class ArticleList extends Component{
 
     state = {
-        articleChannel:[],
         articles:{}
     }
+    reqParams = {
+        page:1,
+        per_page:10
+    }
     componentDidMount() {
-        //获取频道字典
-        getChannels().then(res=>{
-            this.setState({articleChannel:res.data.channels})
-        })
+        this.getList();
+    }
+    //获取列表数据
+    getList = (reqParams)=>{
         //获取文章列表数据
-        getArticleList().then(res=>{
+        getArticleList(reqParams).then(res=>{
             this.setState({articles:res.data})
         })
     }
     //处理页面跳转的逻辑
     onChange = (page,pageSize)=>{
-        console.log(page,pageSize,'----')
+        this.reqParams.page = page;
+        this.reqParams.per_page = pageSize;
+        this.getList(this.reqParams);
     }
     onFinish = (values)=>{
-        console.log(values,'values+++');
+        if(values.status !==-1){
+            this.reqParams.status = values.status;
+        }else {
+            this.reqParams.status = undefined
+        }
+        if(values.channel_id !==undefined){
+            this.reqParams.channel_id = values.channel_id;
+        }
+        if(values.date){
+            //一天的开始时间方法：startOf('day'),同理：一天的结束时间：endOf("day");
+            this.reqParams.begin_pubdate = values.date[0].startOf('day').format('YYYY-MM-DD HH:mm:ss');
+            this.reqParams.end_pubdate = values.date[1].endOf('day').format('YYYY-MM-DD HH:mm:ss');
+        }
+        //查询操作需要让页码重置成1
+        this.reqParams.page = 1;
+        this.getList(this.reqParams)
     }
+
+        //删除操作
+        handleDelete = (id)=>{
+            confirm({
+                title: '温馨提示',
+                icon: <ExclamationCircleOutlined />,
+                content: '确定要删除这篇文章吗？',
+                onOk:()=> {
+                    console.log('确定');
+                    //发送请求删除文章
+                    delArticle(id).then(res=>{
+                        message.success('删除成功');
+                        this.getList();
+                    })
+                },
+                onCancel() {
+                    console.log('取消');
+                },
+            });
+        }
+        //编辑操作
+        handleEdit = (id)=>{
+            this.props.history.push(`/home/publish/${id}`)
+        }
     columns = [
         {
             title: '封面',
             dataIndex: 'cover',
             render(data){
-                if(data.type === 1){
+                console.log(data,'%%%')
+                if(data.type === 0){
                     return <img src={defaultImg} style={{width:200,height:120}}></img>
                 }else{
                     return <img src={data.images[0]} style={{width:200,height:120}}></img>
@@ -86,12 +132,12 @@ class ArticleList extends Component{
         },
         {
             title: '操作',
-            render(){
+            render:(data)=>{
                 return (
                     <div style={{width:80}}>
                         <Space>
-                            <Button type='primary' shape='circle' icon={<EditOutlined/>}></Button>
-                            <Button type='primary' danger shape='circle' icon={<DeleteOutlined/>}></Button>
+                            <Button type='primary' shape='circle' icon={<EditOutlined/>} onClick={()=>this.handleEdit(data.id)}></Button>
+                            <Button type='primary' danger shape='circle' icon={<DeleteOutlined/>} onClick={()=>this.handleDelete(data.id)}></Button>
                         </Space>
                     </div>
                 )
@@ -127,15 +173,9 @@ class ArticleList extends Component{
                             </Radio.Group>
                         </Form.Item>
                         <Form.Item label="频道" name='channel_id' >
-                            <Select style={{width:200}} placeholder='请选择文章频道'>
-                                {
-                                    this.state.articleChannel.map(item=>{
-                                        return <Select.Option key={item.id} value={item.id}>{item.name}</Select.Option>
-                                    })
-                                }
-                            </Select>
+                            <Channel/>
                         </Form.Item>
-                        <Form.Item label="发布日期" name='time'>
+                        <Form.Item label="发布日期" name='date'>
                             <RangePicker />
                         </Form.Item>
                         <Form.Item>
